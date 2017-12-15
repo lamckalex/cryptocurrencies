@@ -1,17 +1,39 @@
+function cryptoCompareObject(responseTicker, data){
+  this.responseTicker = responseTicker;
+  this.data = data;
+}
+
+var cryptoTickers = ["BTC", "BCH", "ETH", "LTC"];
+var responseTicker = ["BTC", "USD", "EUR", "CAD"];
+
 var PriceService = angular.module('PriceService', [])
   .service('Price', function ($http) {
-    
-    var lastRetrieved = null;
-    var lastUpdated = new Date();
 
+    var responseTickerString = "";
 
-    cryptoCurrencies = [];
+    responseTicker.forEach(tick=>{
+      if(!(responseTickerString == ""))
+      {
+        responseTickerString+=",";
+      }
+
+      responseTickerString+=tick;
+    })
+
+    var cryptoCurrencies = [];
     console.log('getting prices');
     cryptoTickers.forEach(crypto => {
-      $http.get("https://min-api.cryptocompare.com/data/price?fsym=" + crypto + "&tsyms=BTC,USD,EUR").then(function (response) {
-        cryptoCurrencies.push({ label: crypto, data: response.data });
-        lastUpdated = new Date();
-        console.log(cryptoCurrencies);
+      $http.get("https://min-api.cryptocompare.com/data/price?fsym=" + crypto + "&tsyms=" + responseTickerString).then(function (response) {
+      
+      var cryptoCompareArray = [];
+      
+      responseTicker.forEach(tick=>{
+        cryptoCompareArray.push(new cryptoCompareObject(tick, response.data[tick]));          
+      })
+
+      console.log(cryptoCompareArray);
+
+      cryptoCurrencies.push({ label: crypto, data: cryptoCompareArray});
       });
     });
 
@@ -26,8 +48,6 @@ var PriceService = angular.module('PriceService', [])
 
 var app = angular.module("myapp", ['PriceService']);
 
-var cryptoTickers = ["BTC", "BCH", "ETH"]; 
-
 app.controller("PricesController", function ($scope, Price) {
   console.log('setting prices');
 
@@ -38,15 +58,32 @@ app.controller("PricesController", function ($scope, Price) {
 
 app.controller("PricesGraphController", function($scope, Price){
   var ctx = document.getElementById("myChart").getContext('2d');
+
+  $scope.responseTicker = responseTicker;
+  $scope.graphTicker = 'BTC';
   
-  var labels = cryptoTickers;
+  var labelobj = { label: $scope.graphTicker};
+  var labels = new Array();
   var data = new Array();
 
   $scope.refresh = function(){
     var cc = Price.getCryptoPrices();
+    // data = new Array();
+    data.length = 0;
+    labels.length = 0;
+    // labels = new Array();
     
     cc.forEach(cc => {
-      data.push(cc.data.BTC);
+      var price;
+
+      cc.data.forEach(val=>{
+        if (val.responseTicker == $scope.graphTicker){
+          //found
+          price = val.data;
+        }
+      })
+      data.push(price);
+      labels.push(cc.label);
     })
     
     myChart.update();
@@ -55,11 +92,12 @@ app.controller("PricesGraphController", function($scope, Price){
   var myChart = new Chart(ctx, {
     type: 'bar',
       data: {
-      labels: labels,
+      labels: 
+        labels,
         datasets: [{
-        label: 'Price per btc',
-        data: data,
-        borderWidth: 1
+          label: "By Currency",
+          data: data,
+          borderWidth: 1
         }]
       },
       options: {

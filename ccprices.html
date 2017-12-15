@@ -8,24 +8,41 @@
   </head>
 
   <body ng-app = "myapp">
-    <div ng-controller ="PricesController" >
-      <h1>Crypto Currencies</h1>
-        <div class="list-group">
-          <a href="#" class="list-group-item" ng-repeat="cc in cryptoCurrencies">
-          <h4 class="list-group-item-heading">{{cc.label}}</h4>
-          <p class="list-group-item-text">BTC: {{cc.data.BTC}}</p>
-          <p class="list-group-item-text">USD: {{cc.data.USD}}</p>
-          <p class="list-group-item-text">EUR: {{cc.data.EUR}}</p>
-        </a>
-      </div>
-    </div>
+    <table style="width:100%">
+      <tr>
+        <td style="width:50%">
+          <div ng-controller="PricesController">
+            <h1>Crypto Currencies</h1>
+            <div class="list-group">
+              <a href="#" class="list-group-item" ng-repeat="cc in cryptoCurrencies">
+                <h4 class="list-group-item-heading">{{cc.label}}</h4>
+                <table>
+                  <tr ng-repeat="data in cc.data">
+                    <td style="padding-right:30px">{{data.responseTicker}}</td>
+                    <td>{{data.data}}</td>
+                  </tr>
+                </table>
+              </a>
+            </div>
+          </div>
+        </td>
+        <td style="width:50%">
+          <div ng-controller="PricesGraphController">
+            <h1>Crypto Bar Graph</h1>
+            <div>
+              <select ng-model="graphTicker" ng-options="x for x in responseTicker">
+              </select>
+              <button ng-click="refresh()">Refresh</button>
+            </div>
+            <div style="height:300px">
+              <canvas id="myChart"></canvas>
+            </div>
+          </div>
+        </td>
+      </tr>
+    </table>
 
-    <div ng-controller="PricesGraphController">
-      <span><h1>Crypto Bar Graph</h1><button ng-click="refresh()">Refresh</button></span>
-      <div style="height:300px">
-        <canvas id="myChart"></canvas>
-      </div>
-    </div>
+
 
     <script src="ccprices.js"></script>
     <script src="https://code.jquery.com/jquery-3.1.1.min.js" integrity="sha256-hVVnYaiADRTO2PzUGmuLJr8BLUSjGIZsDYGmIJLv2b8="crossorigin="anonymous"></script>
